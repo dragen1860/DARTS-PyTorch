@@ -3,8 +3,8 @@
 
 ```python 
 python train_search.py # search for optimized architecture
-python train.py # use seached architecture to optimize weights
-python test.py # test
+python train.py --auxiliary --cutout # use seached architecture to optimize weights
+python test.py --auxiliary --model_path cifar10_model.pt # test
 ```
 
 
