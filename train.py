@@ -17,7 +17,7 @@ from    model import NetworkCIFAR as Network
 
 parser = argparse.ArgumentParser("cifar10")
 parser.add_argument('--data', type=str, default='../data', help='location of the data corpus')
-parser.add_argument('--batchsz', type=int, default=48, help='batch size')
+parser.add_argument('--batchsz', type=int, default=30, help='batch size')
 parser.add_argument('--lr', type=float, default=0.025, help='init learning rate')
 parser.add_argument('--momentum', type=float, default=0.9, help='momentum')
 parser.add_argument('--wd', type=float, default=3e-4, help='weight decay')
@@ -91,11 +91,13 @@ def main():
         logging.info('epoch %d lr %e', epoch, scheduler.get_lr()[0])
         model.drop_path_prob = args.drop_path_prob * epoch / args.epochs
 
+        valid_acc, valid_obj = infer(valid_queue, model, criterion)
+        logging.info('valid_acc: %f', valid_acc)
+
         train_acc, train_obj = train(train_queue, model, criterion, optimizer)
         logging.info('train_acc: %f', train_acc)
 
-        valid_acc, valid_obj = infer(valid_queue, model, criterion)
-        logging.info('valid_acc: %f', valid_acc)
+
 
         utils.save(model, os.path.join(args.save, 'trained.pt'))
         print('saved to: trained.pt')
