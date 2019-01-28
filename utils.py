@@ -109,10 +109,12 @@ def save_checkpoint(state, is_best, save):
 
 
 def save(model, model_path):
+    print('saved to model:', model_path)
     torch.save(model.state_dict(), model_path)
 
 
 def load(model, model_path):
+    print('load from model:', model_path)
     model.load_state_dict(torch.load(model_path))
 
 
@@ -131,7 +133,8 @@ def create_exp_dir(path, scripts_to_save=None):
     print('Experiment dir : {}'.format(path))
 
     if scripts_to_save is not None:
-        os.mkdir(os.path.join(path, 'scripts'))
+        if not os.path.exists(os.path.join(path, 'scripts')):
+            os.mkdir(os.path.join(path, 'scripts'))
         for script in scripts_to_save:
             dst_file = os.path.join(path, 'scripts', os.path.basename(script))
             shutil.copyfile(script, dst_file)

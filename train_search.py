@@ -1,4 +1,4 @@
-import  os,sys,time
+import  os,sys,time, glob
 import  numpy as np
 import  torch
 import  utils
@@ -6,8 +6,6 @@ import  logging
 import  argparse
 import  torch.nn as nn
 from    torch import optim
-import  torch.utils
-import  torch.nn.functional as F
 import  torchvision.datasets as dset
 import  torch.backends.cudnn as cudnn
 
@@ -20,7 +18,7 @@ from    arch import Arch
 
 parser = argparse.ArgumentParser("cifar")
 parser.add_argument('--data', type=str, default='../data', help='location of the data corpus')
-parser.add_argument('--batchsz', type=int, default=32, help='batch size')
+parser.add_argument('--batchsz', type=int, default=16, help='batch size')
 parser.add_argument('--lr', type=float, default=0.025, help='init learning rate')
 parser.add_argument('--lr_min', type=float, default=0.001, help='min learning rate')
 parser.add_argument('--momentum', type=float, default=0.9, help='momentum')
@@ -43,8 +41,8 @@ parser.add_argument('--arch_lr', type=float, default=3e-4, help='learning rate f
 parser.add_argument('--arch_wd', type=float, default=1e-3, help='weight decay for arch encoding')
 args = parser.parse_args()
 
-args.exp_path += str(99)
-utils.create_exp_dir(args.exp_path)
+args.exp_path += str(args.gpu)
+utils.create_exp_dir(args.exp_path, scripts_to_save=glob.glob('*.py'))
 
 log_format = '%(asctime)s %(message)s'
 logging.basicConfig(stream=sys.stdout, level=logging.INFO,
@@ -77,13 +75,13 @@ def main():
 
 
     # try:
-    #     block_mem = 0.8 * (total - used)
+    #     block_mem = 0.85 * (total - used)
     #     print(block_mem)
     #     x = torch.empty((256, 1024, int(block_mem))).cuda()
     #     del x
     # except RuntimeError as err:
     #     print(err)
-    #     block_mem = 0.6 * (total - used)
+    #     block_mem = 0.8 * (total - used)
     #     print(block_mem)
     #     x = torch.empty((256, 1024, int(block_mem))).cuda()
     #     del x
@@ -149,7 +147,7 @@ def main():
         valid_acc, valid_obj = infer(valid_queue, model, criterion)
         logging.info('valid acc: %f', valid_acc)
 
-        utils.save(model, os.path.join(args.exp_path, 'weights.pt'))
+        utils.save(model, os.path.join(args.exp_path, 'search.pt'))
 
 
 def train(train_queue, valid_queue, model, arch, criterion, optimizer, lr):

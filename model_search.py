@@ -47,7 +47,7 @@ class MixedLayer(nn.Module):
         """
 
         :param x: data
-        :param weights: alpha, the output = sum of alpha * op(x)
+        :param weights: alpha,[op_num:8], the output = sum of alpha * op(x)
         :return:
         """
         res = [w * layer(x) for w, layer in zip(weights, self.layers)]
@@ -112,7 +112,7 @@ class Cell(nn.Module):
 
         :param s0:
         :param s1:
-        :param weights:
+        :param weights: [14, 8]
         :return:
         """
         # print('s0:', s0.shape,end='=>')
@@ -190,6 +190,7 @@ class Network(nn.Module):
             else:
                 reduction = False
 
+            # [cp, h, h] => [multiplier*c_curr, h/h//2, h/h//2]
             # the output channels = multiplier * c_curr
             cell = Cell(steps, multiplier, cpp, cp, c_curr, reduction, reduction_prev)
             # update reduction_prev
@@ -199,14 +200,15 @@ class Network(nn.Module):
 
             cpp, cp = cp, multiplier * c_curr
 
+        # adaptive pooling output size to 1x1
         self.global_pooling = nn.AdaptiveAvgPool2d(1)
         # since cp records last cell's output channels
         # it indicates the input channel number
         self.classifier = nn.Linear(cp, num_classes)
 
-        # k is the total number of edges inside single cell
+        # k is the total number of edges inside single cell, 14
         k = sum(1 for i in range(self.steps) for j in range(2 + i))
-        num_ops = len(PRIMITIVES)
+        num_ops = len(PRIMITIVES) # 8
 
         # TODO
         # this kind of implementation will add alpha into self.parameters()
@@ -246,7 +248,8 @@ class Network(nn.Module):
         cell: 5 torch.Size([3, 256, 8, 8]) True
         cell: 6 torch.Size([3, 256, 8, 8]) False
         cell: 7 torch.Size([3, 256, 8, 8]) False
-
+        pool:   torch.Size([16, 256, 1, 1])
+        linear: [b, 10]
         :param x:
         :return:
         """
@@ -260,9 +263,13 @@ class Network(nn.Module):
             # according to current cell's type, it choose which architecture parameters
             # to use
             if cell.reduction: # if current cell is reduction cell
-                weights = F.softmax(self.alpha_reduce, dim=-1)
+                # weights = F.softmax(self.alpha_reduce, dim=-1)
+                w_shape = self.alpha_reduce.shape
+                weights = F.softmax(self.alpha_reduce.view(-1), dim=0).view(*w_shape)
             else:
-                weights = F.softmax(self.alpha_normal, dim=-1) # [14, 8]
+                # weights = F.softmax(self.alpha_normal, dim=-1) # [14, 8]
+                w_shape = self.alpha_normal.shape
+                weights = F.softmax(self.alpha_normal.view(-1), dim=0).view(*w_shape)
             # execute cell() firstly and then assign s0=s1, s1=result
             s0, s1 = s1, cell(s0, s1, weights) # [40, 64, 32, 32]
             # print('cell:',i, s1.shape, cell.reduction, cell.reduction_prev)
@@ -270,6 +277,7 @@ class Network(nn.Module):
 
         # s1 is the last cell's output
         out = self.global_pooling(s1)
+        # print('pool', out.shape)
         logits = self.classifier(out.view(out.size(0), -1))
 
         return logits
