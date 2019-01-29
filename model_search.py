@@ -263,13 +263,9 @@ class Network(nn.Module):
             # according to current cell's type, it choose which architecture parameters
             # to use
             if cell.reduction: # if current cell is reduction cell
-                # weights = F.softmax(self.alpha_reduce, dim=-1)
-                w_shape = self.alpha_reduce.shape
-                weights = F.softmax(self.alpha_reduce.view(-1), dim=0).view(*w_shape)
+                weights = F.softmax(self.alpha_reduce, dim=-1)
             else:
-                # weights = F.softmax(self.alpha_normal, dim=-1) # [14, 8]
-                w_shape = self.alpha_normal.shape
-                weights = F.softmax(self.alpha_normal.view(-1), dim=0).view(*w_shape)
+                weights = F.softmax(self.alpha_normal, dim=-1) # [14, 8]
             # execute cell() firstly and then assign s0=s1, s1=result
             s0, s1 = s1, cell(s0, s1, weights) # [40, 64, 32, 32]
             # print('cell:',i, s1.shape, cell.reduction, cell.reduction_prev)
