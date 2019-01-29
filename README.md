@@ -1,6 +1,8 @@
 
 ## PyTorch 0.4.0 ~ 1.0.0 supported
 
+Currently Only the CNN exp. part has been adopted yet.
+
 ```python 
 python train_search.py # search for optimized architecture
 python train.py --auxiliary --cutout # use seached architecture to optimize weights
