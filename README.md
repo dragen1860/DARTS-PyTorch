@@ -1,14 +1,19 @@
 
-## PyTorch 0.4.0 ~ 1.0.0 supported
+## PyTorch 0.4.0 ~ 1.0.1 supported
 
-Currently Only the CNN exp. part has been adopted yet.
+Currently Only the part of CNN exps.  have been adopted yet.
+I will upload these RNN exps. once completed.
+
 
 ```python 
 python train_search.py # search for optimized architecture
+
 python train.py --auxiliary --cutout # use seached architecture to optimize weights
+
 python test.py --auxiliary --model_path cifar10_model.pt # test
 ```
 
+This repo. is absolutely based on official impl. from https://github.com/quark0/darts with trivial modificatio to make it run on pytorch 0.4+ version.
 
 # Differentiable Architecture Search
 Code accompanying the paper
