@@ -1,5 +1,5 @@
 
-## PyTorch 0.4.0 ~ 1.0.1 supported
+## PyTorch 1.0 supported
 
 Currently Only the part of CNN exps.  have been adopted yet.
 I will upload these RNN exps. once completed.
